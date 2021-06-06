@@ -112,6 +112,16 @@ class DBProvider {
     return res;
   }
 
+  deletePostInWs(String wid) async {
+    final db = await database;
+    var res = db.delete(
+        _posttableName,
+        where: "wid = ?",
+        whereArgs: [wid]
+    );
+    return res;
+  }
+
 
   createWs(WorkSpace rep) async {
     final db = await database;

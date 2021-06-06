@@ -65,11 +65,16 @@ class WsBloc {
 
   update(WorkSpace rep) {
     DBProvider.db.updateWs(rep);
+
+
     getWorkSpaces();
   }
 
   delete(String id) {
     DBProvider.db.deleteWs(id);
+
+    DBProvider.db.deletePostInWs(id);
+
     getWorkSpaces();
   }
 
