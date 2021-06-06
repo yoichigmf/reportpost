@@ -20,6 +20,9 @@ class PostListView extends StatelessWidget {
 
   WsBloc  _bloc;
 
+  //final Postd post;
+  final Postd _newPost = Postd.newPost();
+
   var _image;
   final picker = ImagePicker();
 
@@ -60,13 +63,16 @@ class PostListView extends StatelessWidget {
 
         IconButton(
             icon: Icon(Icons.add_a_photo),
-            onPressed: () {}
+            onPressed: () {
+
+              _moveToAddPhotoView(context, _bloc);
+            }
 
         ),
         IconButton(
             icon: Icon(Icons.add_photo_alternate),
             onPressed: () {
-             print("add pic ");
+            // print("add pic ");
 
               _moveToAddpicView(context, _bloc);
             }
@@ -182,7 +188,18 @@ class PostListView extends StatelessWidget {
 
    switch(ws.kind ){
      case 1:   // image
-       break;
+       return( ListTile(
+         onTap: () {
+
+         },
+         leading: Image.file(File(ws.image)) ,
+        // title: Text(ws.note,
+         //    style: TextStyle(color: Colors.black87)),
+         subtitle: Text(_timeformated(ws.postDate),
+             style: TextStyle(color: Colors.black87)),
+       )
+       );
+         break;
      case 0:   //  text
 
      default:
@@ -232,24 +249,48 @@ class PostListView extends StatelessWidget {
       );
 
 
+
+  _moveToAddPhotoView(BuildContext context, WsBloc _bloc){
+    _getImageFromPhoto();
+
+  }
   _moveToAddpicView(BuildContext context, WsBloc _bloc){
-    getImageFromGallery();
+    _getImageFromGallery();
 
 
   }
 
-  Future getImageFromGallery() async {
+  Future _getImageFromPhoto() async {
+    PickedFile pickedFile = await picker.getImage(source: ImageSource.camera);
+
+
+    if ( pickedFile != null) {
+      print(pickedFile.path);
+      _createNewPost(  pickedFile  );
+      _image = File(pickedFile.path);
+
+    }
+  }
+  Future _getImageFromGallery() async {
     PickedFile pickedFile = await picker.getImage(source: ImageSource.gallery);
 
 
       if ( pickedFile != null) {
         print(pickedFile.path);
+        _createNewPost(  pickedFile  );
         _image = File(pickedFile.path);
 
       }
 
   }
 
+  _createNewPost( PickedFile pfile ){
+    _newPost.image = pfile.path;
+    _newPost.note = pfile.path;
+    _newPost.kind = 1;
+    _bloc.createPost(_newPost);
+    _image = File(pfile.path);
+  }
 /*
   _backgroundOfDismissible() => Container(
       alignment: Alignment.centerLeft,
