@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../components/ws_edit/ws_edit_view.dart';
 
 import '../../components/post_list/post_list_view.dart';
+import '../../components/post_list/post_upload_view.dart';
 import '../../configs/const_text.dart';
 import '../../models/workspace.dart';
 import '../../repositories/ws_bloc.dart';
@@ -65,7 +66,12 @@ class WsListView extends StatelessWidget {
                       caption: 'アップロード',
                       color: Colors.indigo,
                       icon: Icons.share,
-                      onTap: () {},
+                      onTap: () {
+                        _bloc.wid = ws.id;
+                        _bloc.title = ws.title;
+                        _movetoUploadView( context, ws );
+
+                      },
                     ),
                     IconSlideAction(
                       caption: '投稿',
@@ -143,9 +149,10 @@ class WsListView extends StatelessWidget {
     var formatted = formatter.format(tm); // DateからString
     return formatted;
   }
+
   _moveToPostView(BuildContext context, WorkSpace wk) {
 
-print(wk.id);
+//print(wk.id);
 
     Navigator.push(
         context,
@@ -155,7 +162,13 @@ print(wk.id);
 
   }
 
-
+  _movetoUploadView( BuildContext context, WorkSpace wk ){
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>  PostUploadView(wksp: wk))
+    );
+  }
 
     _moveToEditView(BuildContext context, WsBloc bloc, WorkSpace todo) => Navigator.push(
         context,
@@ -167,5 +180,7 @@ print(wk.id);
         MaterialPageRoute(builder: (context) => WsEditView(wsBloc: _bloc, workspace: WorkSpace.newWorkSpace()))
     );
   }
+
+
 
 

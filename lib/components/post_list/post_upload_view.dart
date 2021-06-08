@@ -13,7 +13,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
 
 
-class PostListView extends StatelessWidget {
+class PostUploadView extends StatelessWidget {
   String wid;
   WorkSpace wksp;
   String title;
@@ -28,7 +28,7 @@ class PostListView extends StatelessWidget {
 
   // final WorkSpace _newWS = WorkSpace.newWorkSpace();
 
-  PostListView({Key key, @required this.wksp}) {
+  PostUploadView({Key key, @required this.wksp}) {
     this.wid = wksp.id;
     this.wksp = wksp;
     this.title = wksp.title;
