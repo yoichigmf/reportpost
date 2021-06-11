@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../components/post_edit/post_edit_view.dart';
@@ -7,6 +8,8 @@ import '../../models/post.dart';
 import '../../models/workspace.dart';
 
 import '../../repositories/ws_bloc.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:flutter_slidable/flutter_slidable.dart';
 import "package:intl/intl.dart";
 import 'package:intl/date_symbol_data_local.dart';
@@ -49,7 +52,7 @@ class PostUploadView extends StatelessWidget {
       lcount = postList.length;
     }
     return Scaffold(
-      appBar: AppBar(title: Text(titlestring)),
+      appBar: AppBar(title: Text(titlestring+ " アップロード")),
       persistentFooterButtons: <Widget>[
         /*  TextButton(
           child: Text(
@@ -62,15 +65,19 @@ class PostUploadView extends StatelessWidget {
         */
 
         IconButton(
-            icon: Icon(Icons.add_a_photo),
+            icon: Icon(Icons.upload_file),
             onPressed: () {
 
-              _moveToAddPhotoView(context, _bloc);
+              _uploadWorkSpace(context, _bloc);
+
+              //_showUploadDialog(context, _bloc);
+
+            //  _moveToAddPhotoView(context, _bloc);
             }
 
         ),
         IconButton(
-            icon: Icon(Icons.add_photo_alternate),
+            icon: Icon(Icons.settings),
             onPressed: () {
             // print("add pic ");
 
@@ -79,35 +86,12 @@ class PostUploadView extends StatelessWidget {
 
         ),
         IconButton(
-            icon: Icon(Icons.movie_creation),
+            icon: Icon(Icons.delete_forever),
             onPressed: () {
 
              // _moveToAddPhotoView(context, _bloc);
             }
 
-        ),
-
-        IconButton(
-            icon: Icon(Icons.upload_file),
-            onPressed: () {
-
-              // _moveToAddPhotoView(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.record_voice_over),
-            onPressed: () {
-
-              // _moveToAddPhotoView(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.add_comment),
-            onPressed: () {
-              _moveToCreateView(context, _bloc);
-            }
         ),
 
         //  TextField(decoration:InputDecoration(hintText:'テキスト投稿')),
@@ -170,27 +154,7 @@ class PostUploadView extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(color: Colors.deepOrange[50]),
                     child:  _getItemListTile( ws ),
-                    /*ListTile(
-                      onTap: () {
-                        /* _bloc.wid = ws.id;
-    _bloc.title = ws.title;
 
-    _moveToPostView( context, ws);
-
-    */
-                        // _moveToEditView(context, _bloc, ws);
-                      },
-                      leading: Icon(
-                        Icons.account_circle,
-                        color: Colors.lightBlue,
-                      ),
-                      title: Text(ws.note,
-                          style: TextStyle(color: Colors.black87)),
-                      subtitle: Text(_timeformated(ws.postDate),
-                          style: TextStyle(color: Colors.black87)),
-                    ),
-
-                     */
                   ),
 
                 );
@@ -256,8 +220,99 @@ class PostUploadView extends StatelessWidget {
   }
 
 
+  _uploadWorkSpace(BuildContext context, WsBloc bloc) {
+
+    showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: Text("アップロード確認"),
+          content: Text("ワークスペースの投稿をアップロードします"),
+          actions: <Widget>[
+            // ボタン領域
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+
+                //  Postdata のアップロード
+                _uploadPostData( context,  bloc);
 
 
+                print("post dodo");
+                Navigator.pop(context);
+              }
+              ,
+            ),
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        );
+      },
+    );
+
+  }
+
+  _uploadPostData(BuildContext context, WsBloc bloc) async {
+       bloc.getPost();
+
+       var plist = await bloc.getPostd();
+
+       await for (  Postd psd in plist){
+
+           var mapd = psd.toJson();
+           //var mapd = "{\"id\"=1}";
+           print(mapd);
+           var result = fetchApiResults( mapd );
+           //print(result);
+
+
+       }
+  }
+  Future<ApiResults> fetchApiResults( var post_data ) async {
+    var url = "http://192.168.0.19/report/getpost.php";
+
+    final response = await http.post(Uri.parse(url),
+        body: post_data,
+        headers: {"Content-Type": "application/json"});
+    if (response.statusCode == 200) {
+      print("response OK");
+      print(response.body);
+      //return ApiResults.fromJson(json.decode(response.body));
+    } else {
+      print("response error");
+      throw Exception('Failed');
+    }
+  }
+
+  _showUploadDialog(BuildContext context, WsBloc bloc){
+    showDialog(
+        context: context,
+        builder: (context) {
+          Column(
+            children: <Widget>[
+              AlertDialog(
+                title: Text("アップロード中"),
+                content: SingleChildScrollView(
+                  child: ListBody(
+                    children: <Widget>[
+                      Column(
+
+                        // コンテンツ
+                      ),
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  // ボタン
+                ],
+              ),
+            ],
+          );
+        }
+    );
+  }
 
   _moveToEditView(BuildContext context, WsBloc bloc, Postd post) =>
       Navigator.push(
@@ -339,6 +394,17 @@ class PostUploadView extends StatelessWidget {
 
 }
 
+class ApiResults {
+  final String message;
+  ApiResults({
+    this.message,
+  });
+  factory ApiResults.fromJson(Map<String, dynamic> json) {
+    return ApiResults(
+      message: json['message'],
+    );
+  }
+}
 
 
 class SubListItem extends StatelessWidget {

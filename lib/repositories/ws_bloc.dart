@@ -36,6 +36,15 @@ class WsBloc {
     _postController.sink.add(await DBProvider.db.getPostinWS(this.wid));
   }
 
+  //  Postd の list を返す
+  Stream<Postd> getPostd() async*{
+    List<Postd> PList = await DBProvider.db.getPostinWS(this.wid);
+
+    for ( Postd pst in PList ){
+       yield pst;
+    }
+
+  }
 /*
   setCurrent( WorkSpace ws){
      _cwsController.sink.add( [ws]);

@@ -1,6 +1,24 @@
+import 'dart:convert';
+import 'dart:io' as Io;
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import  '../configs/const_text.dart';
+
+
+/*
+
+kind  に利用するデータタイプ
+class ConstType {
+  static final int note= 0;
+
+  static final int  image = 1;
+  static final int movie = 2;
+  static final int voice = 3;
+  static final int file = 4;
+}
+
+ */
 
 class Postd {
   String id;
@@ -32,8 +50,13 @@ class Postd {
   assignUUID() {
     id = Uuid().v4();
   }
+ /* dynamic toJson(){
+   return  {"name":name, "age":age};
+  }
 
+  */
   //
+
   factory Postd.fromMap(Map<String, dynamic> json) => Postd(
       id: json["id"],
       wid: json["wid"],
@@ -60,4 +83,23 @@ class Postd {
      "lat": lat,
      "lon":lon
   };
+
+  dynamic toJson(){
+
+   switch( kind ){
+     case 1: // image
+     case 2:  // movie
+     case 3:  // voice
+     case 4:  // file
+     final bytes = Io.File(image).readAsBytesSync();
+
+     String img64 = base64Encode(bytes);
+
+     image = img64;
+
+   }
+   return JsonEncoder().convert(toMap());
+
+
+  }
 }
