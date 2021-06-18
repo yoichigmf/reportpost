@@ -6,7 +6,7 @@ import '../../components/post_edit/post_edit_view.dart';
 import '../../configs/const_text.dart';
 import '../../models/post.dart';
 import '../../models/workspace.dart';
-
+import 'package:flutter/services.dart';
 import '../../repositories/ws_bloc.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,6 +14,8 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import "package:intl/intl.dart";
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 
 
 class PostUploadView extends StatelessWidget {
@@ -54,15 +56,7 @@ class PostUploadView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(titlestring+ " アップロード")),
       persistentFooterButtons: <Widget>[
-        /*  TextButton(
-          child: Text(
-            'Button 1',
-          ),
-          onPressed: () {
 
-          },
-        ),
-        */
 
         IconButton(
             icon: Icon(Icons.upload_file),
@@ -70,9 +64,7 @@ class PostUploadView extends StatelessWidget {
 
               _uploadWorkSpace(context, _bloc);
 
-              //_showUploadDialog(context, _bloc);
 
-            //  _moveToAddPhotoView(context, _bloc);
             }
 
         ),
@@ -234,8 +226,14 @@ class PostUploadView extends StatelessWidget {
               child: Text("OK"),
               onPressed: () {
 
+                //  login
+                _loginAndUpload( context, bloc );
+
+               // var accessToken =  LineSDK.instance.currentAccessToken;
+
+                //print(accessToken.toString());
                 //  Postdata のアップロード
-                _uploadPostData( context,  bloc);
+                //_uploadPostData( context,  bloc);
 
 
                 print("post dodo");
@@ -270,6 +268,38 @@ class PostUploadView extends StatelessWidget {
 
        }
   }
+
+  _loginAndUpload(BuildContext context, WsBloc bloc) async {
+    var accessToken;
+    bool _isOnlyWebLogin = false;
+
+    try {
+      /// requestCode is for Android platform only, use another unique value in your application.
+      final loginOption =
+      LoginOption(_isOnlyWebLogin, 'normal', requestCode: 8192);
+      final result = await LineSDK.instance
+          .login(scopes: ['profile'], option: loginOption);
+      final accessToken = await LineSDK.instance.currentAccessToken;
+
+      final idToken = result.accessToken.idToken;
+
+
+      if (accessToken != null) {
+        //print(accessToken.toString());
+        //  Postdata のアップロード
+        _uploadPostData( context,  bloc);
+
+      }
+    }
+    on PlatformException catch (e) {
+    print(e.message);
+    }
+
+
+
+  }
+
+
   Future<ApiResults> fetchApiResults( var post_data ) async {
     var url = "http://192.168.0.19/report/getpost.php";
 

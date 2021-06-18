@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.10.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -44,6 +44,7 @@ dependencies:
   image_picker: ^0.8.0
   http: ^0.13.0
   convert: ^2.0.0
+  flutter_line_sdk: ^2.0.0
 
 dev_dependencies:
   flutter_test:
