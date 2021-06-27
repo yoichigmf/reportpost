@@ -15,6 +15,12 @@ import "package:intl/intl.dart";
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+//import 'package:dio/adapter_browser.dart';
+
+
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 
 
@@ -23,7 +29,7 @@ class PostUploadView extends StatelessWidget {
   WorkSpace wksp;
   String title;
 
-  WsBloc  _bloc;
+  WsBloc _bloc;
 
   //final Postd post;
   final Postd _newPost = Postd.newPost();
@@ -54,24 +60,21 @@ class PostUploadView extends StatelessWidget {
       lcount = postList.length;
     }
     return Scaffold(
-      appBar: AppBar(title: Text(titlestring+ " アップロード")),
+      appBar: AppBar(title: Text(titlestring + " アップロード")),
       persistentFooterButtons: <Widget>[
 
 
         IconButton(
             icon: Icon(Icons.upload_file),
             onPressed: () {
-
               _uploadWorkSpace(context, _bloc);
-
-
             }
 
         ),
         IconButton(
             icon: Icon(Icons.settings),
             onPressed: () {
-            // print("add pic ");
+              // print("add pic ");
 
               _moveToAddpicView(context, _bloc);
             }
@@ -80,8 +83,7 @@ class PostUploadView extends StatelessWidget {
         IconButton(
             icon: Icon(Icons.delete_forever),
             onPressed: () {
-
-             // _moveToAddPhotoView(context, _bloc);
+              // _moveToAddPhotoView(context, _bloc);
             }
 
         ),
@@ -145,7 +147,7 @@ class PostUploadView extends StatelessWidget {
                   ],
                   child: Container(
                     decoration: BoxDecoration(color: Colors.deepOrange[50]),
-                    child:  _getItemListTile( ws ),
+                    child: _getItemListTile(ws),
 
                   ),
 
@@ -165,43 +167,39 @@ class PostUploadView extends StatelessWidget {
     );
   }
 
-  _getItemListTile( Postd ws ){
+  _getItemListTile(Postd ws) {
+    switch (ws.kind) {
+      case 1: // image
+        return (ListTile(
+          onTap: () {
 
-   switch(ws.kind ){
-     case 1:   // image
-       return( ListTile(
-         onTap: () {
+          },
+          leading: Image.file(File(ws.image)),
+          // title: Text(ws.note,
+          //    style: TextStyle(color: Colors.black87)),
+          subtitle: Text(_timeformated(ws.postDate),
+              style: TextStyle(color: Colors.black87)),
+        )
+        );
+        break;
+      case 0: //  text
 
-         },
-         leading: Image.file(File(ws.image)) ,
-        // title: Text(ws.note,
-         //    style: TextStyle(color: Colors.black87)),
-         subtitle: Text(_timeformated(ws.postDate),
-             style: TextStyle(color: Colors.black87)),
-       )
-       );
-         break;
-     case 0:   //  text
-
-     default:
-         return( ListTile(
+      default:
+        return (ListTile(
           onTap: () {
 
           },
           leading: Icon(
-         Icons.account_circle,
-         color: Colors.lightBlue,
-         ),
+            Icons.account_circle,
+            color: Colors.lightBlue,
+          ),
           title: Text(ws.note,
-           style: TextStyle(color: Colors.black87)),
-           subtitle: Text(_timeformated(ws.postDate),
-           style: TextStyle(color: Colors.black87)),
-     )
-     );
-   }
-
-
-
+              style: TextStyle(color: Colors.black87)),
+          subtitle: Text(_timeformated(ws.postDate),
+              style: TextStyle(color: Colors.black87)),
+        )
+        );
+    }
   }
 
   _timeformated(DateTime tm) {
@@ -213,7 +211,6 @@ class PostUploadView extends StatelessWidget {
 
 
   _uploadWorkSpace(BuildContext context, WsBloc bloc) {
-
     showDialog(
       context: context,
       builder: (_) {
@@ -225,15 +222,8 @@ class PostUploadView extends StatelessWidget {
             TextButton(
               child: Text("OK"),
               onPressed: () {
-
-                //  login
-                _loginAndUpload( context, bloc );
-
-               // var accessToken =  LineSDK.instance.currentAccessToken;
-
-                //print(accessToken.toString());
-                //  Postdata のアップロード
-                //_uploadPostData( context,  bloc);
+                //  login and upload
+                _loginAndUpload(context, bloc);
 
 
                 print("post dodo");
@@ -249,30 +239,41 @@ class PostUploadView extends StatelessWidget {
         );
       },
     );
-
   }
 
-  _uploadPostData(BuildContext context, WsBloc bloc) async {
-       bloc.getPost();
+  _uploadPostData(BuildContext context, WsBloc bloc, Dio dio,
+      String postService, String accesstoken, String username) async {
+    bloc.getPost();
 
-       var plist = await bloc.getPostd();
+    var plist = await bloc.getPostd();
 
-       await for (  Postd psd in plist){
+    await for (Postd psd in plist) {
+      var mapd = psd.toMapJson();
+      //var mapd = "{\"id\"=1}";
+      print(mapd);
+      var result = await fetchApiResults(mapd, dio, postService, accesstoken, username );
+      //print(result);
 
-           var mapd = psd.toJson();
-           //var mapd = "{\"id\"=1}";
-           print(mapd);
-           var result = fetchApiResults( mapd );
-           //print(result);
 
-
-       }
+    }
   }
 
   _loginAndUpload(BuildContext context, WsBloc bloc) async {
     var accessToken;
     bool _isOnlyWebLogin = false;
 
+    final postService = "https://uploadrep.herokuapp.com/rep.php";
+    var _dio = Dio();
+    var cookieJar=CookieJar();
+    _dio.interceptors.add(CookieManager(cookieJar));
+
+
+    _dio.options.contentType = "multipart/form-data";
+
+    //final clientAdapter = HttpClientAdapter(); //
+   // clientAdapter.withCredentials = true;
+
+  //  _dio.httpClientAdapter = clientAdapter; // アダプターをセット
     try {
       /// requestCode is for Android platform only, use another unique value in your application.
       final loginOption =
@@ -280,28 +281,77 @@ class PostUploadView extends StatelessWidget {
       final result = await LineSDK.instance
           .login(scopes: ['profile'], option: loginOption);
       final accessToken = await LineSDK.instance.currentAccessToken;
+      final _userProfile = result.userProfile;
 
-      final idToken = result.accessToken.idToken;
+     // final idToken = result.accessToken.idToken;
+
+      print("token = ");
+      print(accessToken.value);
+      print("id = ");
+      print (_userProfile.userId);
+      print("display name = ");
+      print(_userProfile.displayName);
+
+      Response response;
 
 
       if (accessToken != null) {
         //print(accessToken.toString());
         //  Postdata のアップロード
-        _uploadPostData( context,  bloc);
+        response = await _dio.post(postService, data: new FormData.fromMap(
+            {'command': 'START', 'token': accessToken.value}));
+        //  Token を渡してログイン
 
+        if (response.statusCode == 200) {
+          print("response ok");
+
+          //  data upload 処理のステータスをとってエラーハンドリングを書かなければ
+          await _uploadPostData(context, bloc, _dio, postService, accessToken.value, _userProfile.displayName);
+
+          //  ログアウト処理
+          //response = await _dio.post(postService, data: new FormData.fromMap(
+            //  {'command': 'END', 'token': accessToken.value}));
+        }
+        else {
+          //   ログインエラー処理を書く
+          print("error ");
+        }
       }
     }
     on PlatformException catch (e) {
-    print(e.message);
+      print(e.message);
     }
-
-
-
   }
 
 
-  Future<ApiResults> fetchApiResults( var post_data ) async {
-    var url = "http://192.168.0.19/report/getpost.php";
+  Future<ApiResults> fetchApiResults(var post_data, Dio dio, String postService,
+      String accesstoken, String username ) async {
+   // var url = "http://192.168.1.24/report/getpost.php";
+
+   // var pst = {'command': 'DATA', 'token': accesstoken};
+
+    post_data['command'] = 'DATA';
+    post_data['token'] = accesstoken;
+
+    post_data['user'] = username ;
+   // print("data post =");
+   // print(accesstoken);
+    var response = await dio.post(postService, data: new FormData.fromMap(
+          post_data));
+    //  Token を渡してログイン
+
+    if (response.statusCode == 200) {
+      print("response ok");
+
+    }
+    else {
+      print( "response error");
+    }
+  }
+
+/*
+  Future<ApiResults> fetchApiResults( var post_data ,Dio dio) async {
+    var url = "http://192.168.1.24/report/getpost.php";
 
     final response = await http.post(Uri.parse(url),
         body: post_data,
@@ -315,114 +365,93 @@ class PostUploadView extends StatelessWidget {
       throw Exception('Failed');
     }
   }
+*/
 
-  _showUploadDialog(BuildContext context, WsBloc bloc){
-    showDialog(
-        context: context,
-        builder: (context) {
-          Column(
-            children: <Widget>[
-              AlertDialog(
-                title: Text("アップロード中"),
-                content: SingleChildScrollView(
-                  child: ListBody(
-                    children: <Widget>[
-                      Column(
 
-                        // コンテンツ
-                      ),
-                    ],
+    _showUploadDialog(BuildContext context, WsBloc bloc) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            Column(
+              children: <Widget>[
+                AlertDialog(
+                  title: Text("アップロード中"),
+                  content: SingleChildScrollView(
+                    child: ListBody(
+                      children: <Widget>[
+                        Column(
+
+                          // コンテンツ
+                        ),
+                      ],
+                    ),
                   ),
+                  actions: <Widget>[
+                    // ボタン
+                  ],
                 ),
-                actions: <Widget>[
-                  // ボタン
-                ],
-              ),
-            ],
-          );
-        }
-    );
-  }
-
-  _moveToEditView(BuildContext context, WsBloc bloc, Postd post) =>
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => PostEditView(bloc: bloc, post: post))
+              ],
+            );
+          }
       );
-
-  _moveToCreateView(BuildContext context, WsBloc _bloc) =>
-      Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) =>
-              PostEditView(bloc: _bloc, post: Postd.newPost()))
-      );
-
-
-
-  _moveToAddPhotoView(BuildContext context, WsBloc _bloc){
-    _getImageFromPhoto();
-
-  }
-  _moveToAddpicView(BuildContext context, WsBloc _bloc){
-    _getImageFromGallery();
-
-
-  }
-
-  Future _getImageFromPhoto() async {
-    PickedFile pickedFile = await picker.getImage(source: ImageSource.camera);
-
-
-    if ( pickedFile != null) {
-      print(pickedFile.path);
-      _createNewPost(  pickedFile  );
-      _image = File(pickedFile.path);
-
     }
-  }
-  Future _getImageFromGallery() async {
-    PickedFile pickedFile = await picker.getImage(source: ImageSource.gallery);
+
+    _moveToEditView(BuildContext context, WsBloc bloc, Postd post) =>
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => PostEditView(bloc: bloc, post: post))
+        );
+
+    _moveToCreateView(BuildContext context, WsBloc _bloc) =>
+        Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) =>
+                PostEditView(bloc: _bloc, post: Postd.newPost()))
+        );
 
 
-      if ( pickedFile != null) {
+    _moveToAddPhotoView(BuildContext context, WsBloc _bloc) {
+      _getImageFromPhoto();
+    }
+    _moveToAddpicView(BuildContext context, WsBloc _bloc) {
+      _getImageFromGallery();
+    }
+
+    Future _getImageFromPhoto() async {
+      PickedFile pickedFile = await picker.getImage(source: ImageSource.camera);
+
+
+      if (pickedFile != null) {
         print(pickedFile.path);
-        _createNewPost(  pickedFile  );
+        _createNewPost(pickedFile);
         _image = File(pickedFile.path);
-
       }
+    }
+    Future _getImageFromGallery() async {
+      PickedFile pickedFile = await picker.getImage(
+          source: ImageSource.gallery);
+
+
+      if (pickedFile != null) {
+        print(pickedFile.path);
+        _createNewPost(pickedFile);
+        _image = File(pickedFile.path);
+      }
+    }
+
+    _createNewPost(PickedFile pfile) {
+      _newPost.image = pfile.path;
+      _newPost.note = pfile.path;
+      _newPost.kind = 1;
+      _bloc.createPost(_newPost);
+      _image = File(pfile.path);
+    }
+
 
   }
 
-  _createNewPost( PickedFile pfile ){
-    _newPost.image = pfile.path;
-    _newPost.note = pfile.path;
-    _newPost.kind = 1;
-    _bloc.createPost(_newPost);
-    _image = File(pfile.path);
-  }
-/*
-  _backgroundOfDismissible() => Container(
-      alignment: Alignment.centerLeft,
-      color: Colors.green,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-        child: Icon(Icons.done, color: Colors.white),
-      )
-  );
 
-  _secondaryBackgroundOfDismissible() => Container(
-      alignment: Alignment.centerRight,
-      color: Colors.green,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-        child: Icon(Icons.done, color: Colors.white),
-      )
-  );
-
-   */
-
-}
 
 class ApiResults {
   final String message;

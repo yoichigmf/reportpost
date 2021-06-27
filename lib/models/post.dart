@@ -84,6 +84,28 @@ class Postd {
      "lon":lon
   };
 
+  Map<String, dynamic> toMapJson(){
+
+    switch( kind ){
+      case 1: // image
+      case 2:  // movie
+      case 3:  // voice
+      case 4:  // file
+        final bytes = Io.File(image).readAsBytesSync();
+
+        String img64 = base64Encode(bytes);
+
+        image = img64;
+
+    }
+
+    var tj = toMap();
+
+      return tj;
+
+  }
+
+
   dynamic toJson(){
 
    switch( kind ){
@@ -102,4 +124,6 @@ class Postd {
 
 
   }
+
+
 }

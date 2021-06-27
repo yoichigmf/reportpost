@@ -45,6 +45,9 @@ dependencies:
   http: ^0.13.0
   convert: ^2.0.0
   flutter_line_sdk: ^2.0.0
+  dio: ^4.0.0
+  cookie_jar: ^3.0.0
+  dio_cookie_manager: ^2.0.0
 
 dev_dependencies:
   flutter_test:
