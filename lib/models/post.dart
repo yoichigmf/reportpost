@@ -84,6 +84,19 @@ class Postd {
      "lon":lon
   };
 
+  Map<String, dynamic> toJsonMap() => {
+    "id": id,
+    "wid": wid,
+    // sqliteではDate型は直接保存できないため、文字列形式で保存する
+    "postDate": postDate,
+    "note": note,
+    "image": image,
+    "pflag": pflag,
+    "kind": kind,
+    "lat": lat,
+    "lon":lon
+  };
+
   Map<String, dynamic> toMapJson(){
 
     switch( kind ){
@@ -99,7 +112,7 @@ class Postd {
 
     }
 
-    var tj = toMap();
+    var tj = toJsonMap();
 
       return tj;
 

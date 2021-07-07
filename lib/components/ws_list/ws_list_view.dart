@@ -5,12 +5,14 @@ import '../../components/ws_edit/ws_edit_view.dart';
 import '../../components/post_list/post_list_view.dart';
 import '../../components/post_list/post_upload_view.dart';
 import '../../configs/const_text.dart';
+import '../../configs/config_edit_view.dart';
 import '../../models/workspace.dart';
 import '../../repositories/ws_bloc.dart';
 
 import 'package:flutter_slidable/flutter_slidable.dart';
 import "package:intl/intl.dart";
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WsListView extends StatelessWidget {
 
@@ -35,7 +37,7 @@ class WsListView extends StatelessWidget {
 
         IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () {}
+            onPressed: () {_moveToSettingView(context);}
 
         ),
         IconButton(
@@ -149,7 +151,26 @@ class WsListView extends StatelessWidget {
     var formatted = formatter.format(tm); // DateからString
     return formatted;
   }
+  _moveToSettingView(BuildContext context) async {
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    //
+
+    var LineChannel  = prefs.getString('line_channel') ?? '1656109293';
+
+
+    var postURL = prefs.getString('post_url') ?? 'https://uploadrep.herokuapp.com/rep.php';
+
+
+
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ConfigEditView(context,  LineChannel, postURL))
+    );
+
+
+  }
   _moveToPostView(BuildContext context, WorkSpace wk) {
 
 //print(wk.id);

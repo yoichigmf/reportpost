@@ -349,23 +349,6 @@ class PostUploadView extends StatelessWidget {
     }
   }
 
-/*
-  Future<ApiResults> fetchApiResults( var post_data ,Dio dio) async {
-    var url = "http://192.168.1.24/report/getpost.php";
-
-    final response = await http.post(Uri.parse(url),
-        body: post_data,
-        headers: {"Content-Type": "application/json"});
-    if (response.statusCode == 200) {
-      print("response OK");
-      print(response.body);
-      //return ApiResults.fromJson(json.decode(response.body));
-    } else {
-      print("response error");
-      throw Exception('Failed');
-    }
-  }
-*/
 
 
     _showUploadDialog(BuildContext context, WsBloc bloc) {
