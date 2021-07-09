@@ -1,10 +1,8 @@
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../../configs/const_text.dart';
-import '../../models/workspace.dart';
-import '../../repositories/ws_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:reportpost/configs/config_store.dart';
+
 
 class ConfigEditView extends StatelessWidget {
 
@@ -24,26 +22,11 @@ class ConfigEditView extends StatelessWidget {
 
   }
 
-  _initInstance() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    //
 
-    var LineChannel  = prefs.getString('line_channel') ?? '1656109293';
-
-    _setLineChannel(LineChannel );
-    print(_LineChannel);
-    var postURL = prefs.getString('post_url') ?? 'https://uploadrep.herokuapp.com/rep.php';
-
-    _setURL(postURL);
-    print(_postURL);
-
-  }
 
   _save_Instance() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    prefs.setString('line_channel', _LineChannel );
-    prefs.setString('post_url', _postURL );
+    ConfigStore.save_Instance(_LineChannel, _postURL );
   }
 
   @override
@@ -95,6 +78,8 @@ class ConfigEditView extends StatelessWidget {
                onPressed: () {
 
                  _save_Instance();
+                 ConfigStore.init_AuthAPI();
+
                  Navigator.of(context).pop();
                },
                child: Text("決定"),

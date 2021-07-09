@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../components/post_edit/post_edit_view.dart';
@@ -22,7 +22,7 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 
 
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
-
+import 'package:reportpost/configs/config_store.dart';
 
 class PostUploadView extends StatelessWidget {
   String wid;
@@ -245,6 +245,9 @@ class PostUploadView extends StatelessWidget {
       String postService, String accesstoken, String username) async {
     bloc.getPost();
 
+    //  make transaction id
+    var transact_id = "";
+    
     var plist = await bloc.getPostd();
 
     await for (Postd psd in plist) {
@@ -262,7 +265,10 @@ class PostUploadView extends StatelessWidget {
     var accessToken;
     bool _isOnlyWebLogin = false;
 
-    final postService = "https://uploadrep.herokuapp.com/rep.php";
+
+
+    String  postService = await ConfigStore.get_PostURL();
+
     var _dio = Dio();
     var cookieJar=CookieJar();
     _dio.interceptors.add(CookieManager(cookieJar));
@@ -283,6 +289,9 @@ class PostUploadView extends StatelessWidget {
       final accessToken = await LineSDK.instance.currentAccessToken;
       final _userProfile = result.userProfile;
 
+
+      final _friendshpstatus = result.isFriendshipStatusChanged;
+
      // final idToken = result.accessToken.idToken;
 
       print("token = ");
@@ -291,6 +300,31 @@ class PostUploadView extends StatelessWidget {
       print (_userProfile.userId);
       print("display name = ");
       print(_userProfile.displayName);
+      print("friend ship = ");
+      print(_friendshpstatus );
+
+
+
+      if (_friendshpstatus ){
+        var result = await showDialog<int>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('確認'),
+                content: Text('指定LINE BOTと友達になっていないのでアップロードできません'),
+                actions: <Widget>[
+
+                  TextButton(
+                    child: Text('OK'),
+                    onPressed: () => Navigator.of(context).pop(1),
+                  ),
+                ],
+              );
+            }
+        );
+        return;
+      }
 
       Response response;
 
@@ -326,16 +360,13 @@ class PostUploadView extends StatelessWidget {
 
   Future<ApiResults> fetchApiResults(var post_data, Dio dio, String postService,
       String accesstoken, String username ) async {
-   // var url = "http://192.168.1.24/report/getpost.php";
 
-   // var pst = {'command': 'DATA', 'token': accesstoken};
 
     post_data['command'] = 'DATA';
     post_data['token'] = accesstoken;
 
     post_data['user'] = username ;
-   // print("data post =");
-   // print(accesstoken);
+
     var response = await dio.post(postService, data: new FormData.fromMap(
           post_data));
     //  Token を渡してログイン
