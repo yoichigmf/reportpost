@@ -18,10 +18,14 @@ class WsApp extends StatelessWidget {
         title: ConstText.appTitle,
         theme: ThemeData(
           brightness: Brightness.light,
+          primarySwatch: Colors.indigo,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
         // ダークモード対応
         darkTheme: ThemeData(
-            brightness: Brightness.dark
+            brightness: Brightness.dark,
+          primarySwatch: Colors.lightBlue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
           home:WsListView(),
       )

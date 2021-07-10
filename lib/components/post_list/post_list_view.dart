@@ -11,17 +11,19 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import "package:intl/intl.dart";
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:async';
 
-
-class PostListView extends StatelessWidget {
+class PostListView extends StatefulWidget {
   String wid;
   WorkSpace wksp;
   String title;
 
-  WsBloc  _bloc;
+
+
 
   //final Postd post;
   final Postd _newPost = Postd.newPost();
+
 
   var _image;
   final picker = ImagePicker();
@@ -34,32 +36,38 @@ class PostListView extends StatelessWidget {
     this.title = wksp.title;
   }
 
+  @override
+  _PostListViewState createState() => _PostListViewState();
+
+
+}
+class _PostListViewState extends State<PostListView > {
+
+  ScrollController _scrollController = new ScrollController();
+  WsBloc _bloc;
+  final Postd _newPost = Postd.newPost();
+  var _image;
+  final picker = ImagePicker();
 
   @override
   Widget build(BuildContext context) {
     _bloc = Provider.of<WsBloc>(context, listen: false);
-
+    final messageTextInputCtl = new TextEditingController();
     final postList = _bloc.reportPostBloc();
 
     final titlestring = _bloc.title;
 
+
     var lcount = 0;
+    final _formKey = GlobalKey<FormState>();
 
     if (postList != null) {
       lcount = postList.length;
     }
     return Scaffold(
       appBar: AppBar(title: Text(titlestring)),
+      /*
       persistentFooterButtons: <Widget>[
-        /*  TextButton(
-          child: Text(
-            'Button 1',
-          ),
-          onPressed: () {
-
-          },
-        ),
-        */
 
         IconButton(
             icon: Icon(Icons.add_a_photo),
@@ -112,12 +120,23 @@ class PostListView extends StatelessWidget {
 
         //  TextField(decoration:InputDecoration(hintText:'テキスト投稿')),
       ],
-      body: StreamBuilder<List<Postd>>(
+
+       */
+      body: Stack(
+        alignment: Alignment.bottomCenter,
+        children : <Widget>
+      [
+      GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+       child: StreamBuilder<List<Postd>>(
+
         stream: _bloc.postStream,
         builder: (BuildContext context, AsyncSnapshot<List<Postd>> snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
               itemCount: snapshot.data.length,
+              controller: _scrollController,
+              padding: const EdgeInsets.only(top: 10.0, right: 5.0, bottom: 50.0, left: 5.0),
               itemBuilder: (BuildContext context, int index) {
                 Postd ws = snapshot.data[index];
 
@@ -127,27 +146,7 @@ class PostListView extends StatelessWidget {
                   actionExtentRatio: 0.2,
                   actionPane: SlidableScrollActionPane(),
                   actions: [
-/*
-                    IconSlideAction(
-                      caption: 'アップロード',
-                      color: Colors.indigo,
-                      icon: Icons.share,
-                      onTap: () {},
-                    ),
-                    IconSlideAction(
-                      caption: '投稿',
-                      color: Colors.lightBlue,
-                      icon: Icons.input,
-                      onTap: () {
-                        /*_bloc.wid = ws.id;
-    _bloc.title = ws.title;
-    _moveToPostView( context, ws);
 
-     */
-                      },
-                    ),
-
- */
                   ],
                   secondaryActions: [
                     IconSlideAction(
@@ -170,27 +169,7 @@ class PostListView extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(color: Colors.deepOrange[50]),
                     child:  _getItemListTile( ws ),
-                    /*ListTile(
-                      onTap: () {
-                        /* _bloc.wid = ws.id;
-    _bloc.title = ws.title;
 
-    _moveToPostView( context, ws);
-
-    */
-                        // _moveToEditView(context, _bloc, ws);
-                      },
-                      leading: Icon(
-                        Icons.account_circle,
-                        color: Colors.lightBlue,
-                      ),
-                      title: Text(ws.note,
-                          style: TextStyle(color: Colors.black87)),
-                      subtitle: Text(_timeformated(ws.postDate),
-                          style: TextStyle(color: Colors.black87)),
-                    ),
-
-                     */
                   ),
 
                 );
@@ -200,15 +179,82 @@ class PostListView extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         },
       ),
-      /*   floatingActionButton: FloatingActionButton(
-        onPressed: (){ _moveToCreateView(context, _bloc); },
-        child: Icon(Icons.add, size: 40),
       ),
 
-    */
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              new Container(
+                  color: Colors.green[100],
+                  child: Column(
+                      children: <Widget>[
+                        new Form(
+                            key: _formKey,
+                            child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: <Widget>[
+                                  new Flexible(
+                                      child: new TextFormField(
+                                        controller: messageTextInputCtl,
+                                        keyboardType: TextInputType.multiline,
+
+                                        maxLines: 10,
+                                        minLines: 1,
+                                        decoration: const InputDecoration(
+                                          hintText: 'メッセージを入力してください',
+                                        ),
+                                        onTap: (){
+                                          // タイマーを入れてキーボード分スクロールする様に
+                                          Timer(
+                                            Duration(milliseconds: 200),
+                                            _scrollToBottom,
+                                          );
+                                        },
+                                      )),
+                                  Material(
+                                    color: Colors.indigoAccent,
+                                    child: Center(
+                                      child: Ink(
+                                        decoration: const ShapeDecoration(
+                                          color: Colors.indigo,
+                                          shape: CircleBorder(),
+                                        ),
+                                        child: IconButton(
+                                          icon: Icon(Icons.send),
+                                          color: Colors.white,
+                                          onPressed: () {
+                                            _addMessage(messageTextInputCtl.text);
+                                            FocusScope.of(context).unfocus();
+                                            messageTextInputCtl.clear();
+                                            Timer(
+                                              Duration(milliseconds: 200),
+                                              _scrollToBottom,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ]
+                            )
+                        ),
+                      ]
+                  )
+              ),
+            ],
+          )
+
+      ]
+      )
     );
   }
-
+  void _scrollToBottom(){
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent + MediaQuery.of(context).viewInsets.bottom,
+      curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
   _getItemListTile( Postd ws ){
 
    switch(ws.kind ){
@@ -255,7 +301,9 @@ class PostListView extends StatelessWidget {
     return formatted;
   }
 
+  _addMessage(String message){
 
+  }
 
 
 

@@ -53,6 +53,7 @@ class WsListView extends StatelessWidget {
           if (snapshot.hasData) {
             return ListView.builder(
               itemCount: snapshot.data.length,
+              padding: const EdgeInsets.symmetric(vertical: 8),
               itemBuilder: (BuildContext context, int index) {
 
                 WorkSpace ws = snapshot.data[index];
@@ -114,13 +115,19 @@ class WsListView extends StatelessWidget {
                         _moveToPostView( context, ws);
                        // _moveToEditView(context, _bloc, ws);
                       },
-                      leading: Icon(
-                        Icons.account_circle,
-                        color: Colors.lightBlue,
-                      ),
+                      leading: ExcludeSemantics(
+                        child: CircleAvatar(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            child: Text('WS')
+                            ) ),
+
+
                       title: Text(ws.title,
                           style: TextStyle(color: Colors.black87)),
                       subtitle: Text(_timeformated(ws.dueDate),style: TextStyle(color: Colors.black87) ),
+
+
                     ),
                   ),
 
