@@ -18,6 +18,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:uuid/uuid.dart';
 //import 'package:dio/adapter_browser.dart';
 
 
@@ -246,15 +247,15 @@ class PostUploadView extends StatelessWidget {
     bloc.getPost();
 
     //  make transaction id
-    var transact_id = "";
-    
+    var transact_id = Uuid().v4();
+
     var plist = await bloc.getPostd();
 
     await for (Postd psd in plist) {
       var mapd = psd.toMapJson();
       //var mapd = "{\"id\"=1}";
-      print(mapd);
-      var result = await fetchApiResults(mapd, dio, postService, accesstoken, username );
+     // print(mapd);
+      var result = await fetchApiResults(mapd, dio, postService, accesstoken, username, transact_id );
       //print(result);
 
 
@@ -359,14 +360,16 @@ class PostUploadView extends StatelessWidget {
 
 
   Future<ApiResults> fetchApiResults(var post_data, Dio dio, String postService,
-      String accesstoken, String username ) async {
+      String accesstoken, String username , String transact_id ) async {
 
 
     post_data['command'] = 'DATA';
     post_data['token'] = accesstoken;
 
     post_data['user'] = username ;
+    post_data['transact_id'] = transact_id ;
 
+    print(post_data);
     var response = await dio.post(postService, data: new FormData.fromMap(
           post_data));
     //  Token を渡してログイン
