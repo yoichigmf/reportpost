@@ -277,9 +277,11 @@ class PostUploadView extends StatelessWidget {
    // clientAdapter.withCredentials = true;
 
   //  _dio.httpClientAdapter = clientAdapter; // アダプターをセット
+
+
     try {
       /// requestCode is for Android platform only, use another unique value in your application.
-      final loginOption =
+     /* final loginOption =
       LoginOption(_isOnlyWebLogin, 'normal', requestCode: 8192);
       final result = await LineSDK.instance
           .login(scopes: ['profile'], option: loginOption);
@@ -323,14 +325,20 @@ class PostUploadView extends StatelessWidget {
         return;
       }
 
+
+      */
+
       Response response;
 
+      var accessToken = "sample_token";
 
       if (accessToken != null) {
         //print(accessToken.toString());
         //  Postdata のアップロード
         response = await _dio.post(postService, data: new FormData.fromMap(
-            {'command': 'START', 'token': accessToken.value}));
+            {'command': 'START', 'token': accessToken}));
+
+      //  {'command': 'START', 'token': accessToken.value}));
         //  Token を渡してログイン
 
         if (response.statusCode == 200) {
@@ -338,8 +346,8 @@ class PostUploadView extends StatelessWidget {
           _msgTextC.text = "アップロード成功" ;
           //  umsgbox = Text("response ok");
           //  data upload 処理のステータスをとってエラーハンドリングを書かなければ
-          await _uploadPostData(context, bloc, _dio, postService, accessToken.value, _userProfile.displayName);
-
+         // await _uploadPostData(context, bloc, _dio, postService, accessToken.value, _userProfile.displayName);
+          await _uploadPostData(context, bloc, _dio, postService, accessToken, "yoichi");
           //  ログアウト処理
           //response = await _dio.post(postService, data: new FormData.fromMap(
             //  {'command': 'END', 'token': accessToken.value}));
