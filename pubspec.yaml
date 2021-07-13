@@ -49,6 +49,8 @@ dependencies:
   cookie_jar: ^3.0.0
   dio_cookie_manager: ^2.0.0
   shared_preferences: ^0.4.1
+  path: ^1.7.0
+  video_thumbnail: ^0.3.3
 
 dev_dependencies:
   flutter_test:

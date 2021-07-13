@@ -1,16 +1,23 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../components/post_edit/post_edit_view.dart';
-import '../../configs/const_text.dart';
+import 'package:path_provider/path_provider.dart';
+
 import '../../models/post.dart';
 import '../../models/workspace.dart';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../../repositories/ws_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import "package:intl/intl.dart";
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
+import '../tools/video_thumbnail.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 
 class PostListView extends StatelessWidget {
@@ -36,7 +43,7 @@ class PostListView extends StatelessWidget {
 
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context)  {
     _bloc = Provider.of<WsBloc>(context, listen: false);
 
     final postList = _bloc.reportPostBloc();
@@ -50,16 +57,102 @@ class PostListView extends StatelessWidget {
     }
     return Scaffold(
       appBar: AppBar(title: Text(titlestring)),
-      persistentFooterButtons: <Widget>[
-        /*  TextButton(
-          child: Text(
-            'Button 1',
-          ),
-          onPressed: () {
+    bottomNavigationBar: new Container(
+    padding: EdgeInsets.all(0.0),
+    child: Row(
+    mainAxisSize: MainAxisSize.max,
+    children: <Widget>[
+      Expanded(
+        flex: 1,
+        child:  IconButton(
+            icon: Icon(Icons.add_a_photo),
+            onPressed: () {
 
-          },
+              _moveToAddPhotoView(context, _bloc);
+            }
+
         ),
-        */
+      ),
+      Expanded(
+        flex: 1,
+        child: IconButton(
+            icon: Icon(Icons.add_photo_alternate),
+            onPressed: () {
+              // print("add pic ");
+
+              _moveToAddpicView(context, _bloc);
+            }
+
+        ),
+      ),
+
+      Expanded(
+        flex: 1,
+        child:  IconButton(
+            icon: Icon(Icons.video_call),
+            onPressed: () {
+
+              _moveToAddVideoView(context, _bloc);
+            }
+
+        ),
+      ),
+
+
+      Expanded(
+        flex: 1,
+        child:  IconButton(
+            icon: Icon(Icons.video_library),
+            onPressed: () {
+
+              _moveToAddVideoFromGalley(context, _bloc);
+            }
+
+        ),
+      ),
+/*
+      Expanded(
+        flex: 1,
+        child:  IconButton(
+            icon: Icon(Icons.upload_file),
+            onPressed: () {
+
+              // _moveToAddPhotoView(context, _bloc);
+            }
+
+        ),
+      ),
+
+      Expanded(
+        flex: 1,
+        child:   IconButton(
+            icon: Icon(Icons.record_voice_over),
+            onPressed: () {
+
+              // _moveToAddPhotoView(context, _bloc);
+            }
+
+        ),
+      ),
+
+ */
+
+      Expanded(
+        flex: 1,
+        child:   IconButton(
+            icon: Icon(Icons.add_comment),
+            onPressed: () {
+              _moveToCreateView(context, _bloc);
+            }
+        ),
+      ),
+
+      ],
+    )
+    ),
+      /*
+      persistentFooterButtons: <Widget>[
+
 
         IconButton(
             icon: Icon(Icons.add_a_photo),
@@ -79,14 +172,21 @@ class PostListView extends StatelessWidget {
 
         ),
         IconButton(
-            icon: Icon(Icons.movie_creation),
+            icon: Icon(Icons.video_call),
             onPressed: () {
 
-             // _moveToAddPhotoView(context, _bloc);
+              _moveToAddVideoView(context, _bloc);
             }
 
         ),
+        IconButton(
+            icon: Icon(Icons.video_library),
+            onPressed: () {
 
+              _moveToAddVideoFromGalley(context, _bloc);
+            }
+
+        ),
         IconButton(
             icon: Icon(Icons.upload_file),
             onPressed: () {
@@ -112,6 +212,8 @@ class PostListView extends StatelessWidget {
 
         //  TextField(decoration:InputDecoration(hintText:'テキスト投稿')),
       ],
+
+       */
       body: StreamBuilder<List<Postd>>(
         stream: _bloc.postStream,
         builder: (BuildContext context, AsyncSnapshot<List<Postd>> snapshot) {
@@ -127,27 +229,7 @@ class PostListView extends StatelessWidget {
                   actionExtentRatio: 0.2,
                   actionPane: SlidableScrollActionPane(),
                   actions: [
-/*
-                    IconSlideAction(
-                      caption: 'アップロード',
-                      color: Colors.indigo,
-                      icon: Icons.share,
-                      onTap: () {},
-                    ),
-                    IconSlideAction(
-                      caption: '投稿',
-                      color: Colors.lightBlue,
-                      icon: Icons.input,
-                      onTap: () {
-                        /*_bloc.wid = ws.id;
-    _bloc.title = ws.title;
-    _moveToPostView( context, ws);
 
-     */
-                      },
-                    ),
-
- */
                   ],
                   secondaryActions: [
                     IconSlideAction(
@@ -169,28 +251,8 @@ class PostListView extends StatelessWidget {
                   ],
                   child: Container(
                     decoration: BoxDecoration(color: Colors.deepOrange[50]),
-                    child:  _getItemListTile( ws ),
-                    /*ListTile(
-                      onTap: () {
-                        /* _bloc.wid = ws.id;
-    _bloc.title = ws.title;
+                    child: _getItemListTile( ws ),
 
-    _moveToPostView( context, ws);
-
-    */
-                        // _moveToEditView(context, _bloc, ws);
-                      },
-                      leading: Icon(
-                        Icons.account_circle,
-                        color: Colors.lightBlue,
-                      ),
-                      title: Text(ws.note,
-                          style: TextStyle(color: Colors.black87)),
-                      subtitle: Text(_timeformated(ws.postDate),
-                          style: TextStyle(color: Colors.black87)),
-                    ),
-
-                     */
                   ),
 
                 );
@@ -200,17 +262,14 @@ class PostListView extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         },
       ),
-      /*   floatingActionButton: FloatingActionButton(
-        onPressed: (){ _moveToCreateView(context, _bloc); },
-        child: Icon(Icons.add, size: 40),
-      ),
 
-    */
     );
   }
 
-  _getItemListTile( Postd ws ){
+_getItemListTile( Postd ws )  {
+    GenThumbnailImage  _futureImage;
 
+    //  kind   0 text   1 image 2 movie   3 voice 4 file
    switch(ws.kind ){
      case 1:   // image
        return( ListTile(
@@ -225,6 +284,32 @@ class PostListView extends StatelessWidget {
        )
        );
          break;
+
+     case 2:   //   movie
+     /*  var i18list = await VideoThumbnail.thumbnailData(
+         video: ws.image,
+         imageFormat: ImageFormat.JPEG,
+         maxWidth: 128,
+         quality: 25,
+       );
+
+
+
+      */
+       return( ListTile(
+
+           leading:  Icon(Icons.videocam) ,
+           // title: Text(ws.note,
+           //    style: TextStyle(color: Colors.black87)),
+           subtitle: Text(_timeformated(ws.postDate),
+               style: TextStyle(color: Colors.black87)),
+         )
+         );
+
+
+       
+
+       break;
      case 0:   //  text
 
      default:
@@ -248,6 +333,23 @@ class PostListView extends StatelessWidget {
 
   }
 
+
+
+Future<String> _getVideothumnail( tgfile ) async {
+
+
+   final fileName = await VideoThumbnail.thumbnailFile(
+       video: "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
+       thumbnailPath: (await getTemporaryDirectory()).path,
+   imageFormat: ImageFormat.WEBP,
+   maxHeight: 64, // specify the height of the thumbnail, let the width auto-scaled to keep the source aspect ratio
+   quality: 75,
+   );
+
+
+    return fileName;
+
+  }
   _timeformated(DateTime tm) {
     initializeDateFormatting("ja_JP");
     var formatter = new DateFormat('yyyy/MM/dd(E) HH:mm', "ja_JP");
@@ -256,15 +358,6 @@ class PostListView extends StatelessWidget {
   }
 
 
-
-
-
-  _moveToEditView(BuildContext context, WsBloc bloc, Postd post) =>
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => PostEditView(bloc: bloc, post: post))
-      );
 
   _moveToCreateView(BuildContext context, WsBloc _bloc) =>
       Navigator.push(
@@ -285,13 +378,50 @@ class PostListView extends StatelessWidget {
 
   }
 
+
+
+  _moveToAddVideoView(BuildContext context, WsBloc _bloc){
+    _getVideoFromCamera();
+
+  }
+
+  _moveToAddVideoFromGalley(BuildContext context, WsBloc _bloc){
+    _getVideoFromGalley();
+
+  }
+
+
+  Future _getVideoFromCamera() async {
+    PickedFile pickedFile = await picker.getVideo(source: ImageSource.camera);
+
+
+    if ( pickedFile != null) {
+      print(pickedFile.path);
+      _createNewPost(  pickedFile  ,2);
+      _image = File(pickedFile.path);
+
+    }
+  }
+
+  Future _getVideoFromGalley() async {
+    PickedFile pickedFile = await picker.getVideo(source: ImageSource.gallery);
+
+
+    if ( pickedFile != null) {
+      print(pickedFile.path);
+      _createNewPost(  pickedFile  ,2);
+      _image = File(pickedFile.path);
+
+    }
+  }
+
   Future _getImageFromPhoto() async {
     PickedFile pickedFile = await picker.getImage(source: ImageSource.camera);
 
 
     if ( pickedFile != null) {
       print(pickedFile.path);
-      _createNewPost(  pickedFile  );
+      _createNewPost(  pickedFile ,1 );
       _image = File(pickedFile.path);
 
     }
@@ -302,40 +432,21 @@ class PostListView extends StatelessWidget {
 
       if ( pickedFile != null) {
         print(pickedFile.path);
-        _createNewPost(  pickedFile  );
+        _createNewPost(  pickedFile  ,1);
         _image = File(pickedFile.path);
 
       }
 
   }
 
-  _createNewPost( PickedFile pfile ){
+  _createNewPost( PickedFile pfile , int kind){
     _newPost.image = pfile.path;
     _newPost.note = pfile.path;
-    _newPost.kind = 1;
+    _newPost.kind = kind;
     _bloc.createPost(_newPost);
     _image = File(pfile.path);
   }
-/*
-  _backgroundOfDismissible() => Container(
-      alignment: Alignment.centerLeft,
-      color: Colors.green,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-        child: Icon(Icons.done, color: Colors.white),
-      )
-  );
 
-  _secondaryBackgroundOfDismissible() => Container(
-      alignment: Alignment.centerRight,
-      color: Colors.green,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-        child: Icon(Icons.done, color: Colors.white),
-      )
-  );
-
-   */
 
 }
 

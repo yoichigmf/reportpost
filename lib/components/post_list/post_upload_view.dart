@@ -38,12 +38,30 @@ class PostUploadView extends StatelessWidget {
   var _image;
   final picker = ImagePicker();
 
+   var _msgTextC = TextEditingController();
+
+  var   _umsgbox;
+
+
+
+
   // final WorkSpace _newWS = WorkSpace.newWorkSpace();
 
   PostUploadView({Key key, @required this.wksp}) {
     this.wid = wksp.id;
     this.wksp = wksp;
     this.title = wksp.title;
+
+    _msgTextC.text = "アップロードしてください";
+    _umsgbox = new Container(
+        width:300.0,
+        child:TextField(
+          enabled:false,
+          style: TextStyle(
+            fontSize:14.0,),
+          controller:_msgTextC ,
+        ));
+
   }
 
 
@@ -56,6 +74,7 @@ class PostUploadView extends StatelessWidget {
     final titlestring = _bloc.title;
 
     var lcount = 0;
+    _msgTextC.text = "アップロードしてください";
 
     if (postList != null) {
       lcount = postList.length;
@@ -64,33 +83,18 @@ class PostUploadView extends StatelessWidget {
       appBar: AppBar(title: Text(titlestring + " アップロード")),
       persistentFooterButtons: <Widget>[
 
-
+        _umsgbox ,
         IconButton(
             icon: Icon(Icons.upload_file),
             onPressed: () {
               _uploadWorkSpace(context, _bloc);
             }
+        )
 
-        ),
-        IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              // print("add pic ");
-
-              _moveToAddpicView(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.delete_forever),
-            onPressed: () {
-              // _moveToAddPhotoView(context, _bloc);
-            }
-
-        ),
+          ],
 
         //  TextField(decoration:InputDecoration(hintText:'テキスト投稿')),
-      ],
+
       body: StreamBuilder<List<Postd>>(
         stream: _bloc.postStream,
         builder: (BuildContext context, AsyncSnapshot<List<Postd>> snapshot) {
@@ -106,27 +110,7 @@ class PostUploadView extends StatelessWidget {
                   actionExtentRatio: 0.2,
                   actionPane: SlidableScrollActionPane(),
                   actions: [
-/*
-                    IconSlideAction(
-                      caption: 'アップロード',
-                      color: Colors.indigo,
-                      icon: Icons.share,
-                      onTap: () {},
-                    ),
-                    IconSlideAction(
-                      caption: '投稿',
-                      color: Colors.lightBlue,
-                      icon: Icons.input,
-                      onTap: () {
-                        /*_bloc.wid = ws.id;
-    _bloc.title = ws.title;
-    _moveToPostView( context, ws);
 
-     */
-                      },
-                    ),
-
- */
                   ],
                   secondaryActions: [
                     IconSlideAction(
@@ -183,6 +167,18 @@ class PostUploadView extends StatelessWidget {
         )
         );
         break;
+      case 2: // video
+        return( ListTile(
+
+          leading:  Icon(Icons.videocam) ,
+          // title: Text(ws.note,
+          //    style: TextStyle(color: Colors.black87)),
+          subtitle: Text(_timeformated(ws.postDate),
+              style: TextStyle(color: Colors.black87)),
+        )
+        );
+        break;
+
       case 0: //  text
 
       default:
@@ -339,7 +335,8 @@ class PostUploadView extends StatelessWidget {
 
         if (response.statusCode == 200) {
           print("response ok");
-
+          _msgTextC.text = "アップロード成功" ;
+          //  umsgbox = Text("response ok");
           //  data upload 処理のステータスをとってエラーハンドリングを書かなければ
           await _uploadPostData(context, bloc, _dio, postService, accessToken.value, _userProfile.displayName);
 
@@ -349,11 +346,14 @@ class PostUploadView extends StatelessWidget {
         }
         else {
           //   ログインエラー処理を書く
+          _msgTextC.text = "サーバ接続エラー "+ response.statusMessage;
+          //umsgbox = Text("サーバ接続エラー");
           print("error ");
         }
       }
     }
     on PlatformException catch (e) {
+      _msgTextC.text = "サーバ接続エラー " + e.message ;
       print(e.message);
     }
   }
@@ -380,6 +380,8 @@ class PostUploadView extends StatelessWidget {
     }
     else {
       print( "response error");
+
+
     }
   }
 
