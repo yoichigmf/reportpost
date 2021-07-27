@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../components/ws_edit/ws_edit_view.dart';
 
 import '../../components/post_list/post_list_view.dart';
-import '../../components/post_list/post_upload_view.dart';
+//import '../../components/post_list/post_upload_view.dart';
 import '../../configs/const_text.dart';
 import '../../configs/config_edit_view.dart';
 import '../../models/workspace.dart';
@@ -185,6 +185,7 @@ class WsListView extends StatelessWidget {
 
   }
 
+  /*
   _movetoUploadView( BuildContext context, WorkSpace wk ){
     Navigator.push(
         context,
@@ -192,6 +193,8 @@ class WsListView extends StatelessWidget {
             builder: (context) =>  PostUploadView(wksp: wk))
     );
   }
+  */
+
 
     _moveToEditView(BuildContext context, WsBloc bloc, WorkSpace todo) => Navigator.push(
         context,

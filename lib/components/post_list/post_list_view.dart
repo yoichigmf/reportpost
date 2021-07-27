@@ -396,7 +396,7 @@ class PostListView extends StatelessWidget {
   }
 
   _getItemListTile( Postd ws )  {
-    GenThumbnailImage  _futureImage;
+    //GenThumbnailImage  _futureImage;
 
     //  kind   0 text   1 image 2 movie   3 voice 4 file
    switch(ws.kind ){
