@@ -63,7 +63,7 @@ class WsListView extends StatelessWidget {
                   actionExtentRatio: 0.2,
                   actionPane: SlidableScrollActionPane(),
                   actions: [
-
+/*
                     IconSlideAction(
                       caption: 'アップロード',
                       color: Colors.indigo,
@@ -75,6 +75,8 @@ class WsListView extends StatelessWidget {
 
                       },
                     ),
+
+ */
                     IconSlideAction(
                       caption: '投稿',
                       color: Colors.lightBlue,

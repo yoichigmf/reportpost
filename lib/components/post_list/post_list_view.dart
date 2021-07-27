@@ -19,6 +19,15 @@ import 'package:image_picker/image_picker.dart';
 import '../tools/video_thumbnail.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:uuid/uuid.dart';
+import 'package:flutter/services.dart';
+
+import 'package:flutter_line_sdk/flutter_line_sdk.dart';
+import 'package:reportpost/configs/config_store.dart';
+
 
 class PostListView extends StatelessWidget {
   String wid;
@@ -29,7 +38,7 @@ class PostListView extends StatelessWidget {
 
   //final Postd post;
   final Postd _newPost = Postd.newPost();
-
+  var _msgTextC = TextEditingController();
   var _image;
   final picker = ImagePicker();
 
@@ -110,32 +119,17 @@ class PostListView extends StatelessWidget {
 
         ),
       ),
-/*
-      Expanded(
-        flex: 1,
-        child:  IconButton(
-            icon: Icon(Icons.upload_file),
-            onPressed: () {
-
-              // _moveToAddPhotoView(context, _bloc);
-            }
-
-        ),
-      ),
 
       Expanded(
         flex: 1,
         child:   IconButton(
-            icon: Icon(Icons.record_voice_over),
+            icon: Icon(Icons.upload_file),
             onPressed: () {
+              _uploadWorkSpace(context, _bloc);
 
-              // _moveToAddPhotoView(context, _bloc);
             }
-
         ),
       ),
-
- */
 
       Expanded(
         flex: 1,
@@ -150,70 +144,7 @@ class PostListView extends StatelessWidget {
       ],
     )
     ),
-      /*
-      persistentFooterButtons: <Widget>[
 
-
-        IconButton(
-            icon: Icon(Icons.add_a_photo),
-            onPressed: () {
-
-              _moveToAddPhotoView(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.add_photo_alternate),
-            onPressed: () {
-            // print("add pic ");
-
-              _moveToAddpicView(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.video_call),
-            onPressed: () {
-
-              _moveToAddVideoView(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.video_library),
-            onPressed: () {
-
-              _moveToAddVideoFromGalley(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.upload_file),
-            onPressed: () {
-
-              // _moveToAddPhotoView(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.record_voice_over),
-            onPressed: () {
-
-              // _moveToAddPhotoView(context, _bloc);
-            }
-
-        ),
-        IconButton(
-            icon: Icon(Icons.add_comment),
-            onPressed: () {
-              _moveToCreateView(context, _bloc);
-            }
-        ),
-
-        //  TextField(decoration:InputDecoration(hintText:'テキスト投稿')),
-      ],
-
-       */
       body: StreamBuilder<List<Postd>>(
         stream: _bloc.postStream,
         builder: (BuildContext context, AsyncSnapshot<List<Postd>> snapshot) {
@@ -266,7 +197,187 @@ class PostListView extends StatelessWidget {
     );
   }
 
-_getItemListTile( Postd ws )  {
+
+  _uploadWorkSpace(BuildContext context, WsBloc bloc) {
+    showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: Text("アップロード確認"),
+          content: Text("ワークスペースの投稿をアップロードします"),
+          actions: <Widget>[
+            // ボタン領域
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                //  login and upload
+                _loginAndUpload(context, bloc);
+
+
+                print("post dodo");
+                Navigator.pop(context);
+              }
+              ,
+            ),
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  _loginAndUpload(BuildContext context, WsBloc bloc) async {
+    var accessToken;
+    bool _isOnlyWebLogin = false;
+
+
+
+    String  postService = await ConfigStore.get_PostURL();
+
+    var _dio = Dio();
+    var cookieJar=CookieJar();
+    _dio.interceptors.add(CookieManager(cookieJar));
+
+
+    _dio.options.contentType = "multipart/form-data";
+
+    //final clientAdapter = HttpClientAdapter(); //
+    // clientAdapter.withCredentials = true;
+
+    //  _dio.httpClientAdapter = clientAdapter; // アダプターをセット
+    try {
+      /// requestCode is for Android platform only, use another unique value in your application.
+      final loginOption =
+      LoginOption(_isOnlyWebLogin, 'normal', requestCode: 8192);
+      final result = await LineSDK.instance
+          .login(scopes: ['profile'], option: loginOption);
+      final accessToken = await LineSDK.instance.currentAccessToken;
+      final _userProfile = result.userProfile;
+
+
+      final _friendshpstatus = result.isFriendshipStatusChanged;
+
+      // final idToken = result.accessToken.idToken;
+
+      print("token = ");
+      print(accessToken.value);
+      print("id = ");
+      print (_userProfile.userId);
+      print("display name = ");
+      print(_userProfile.displayName);
+      print("friend ship = ");
+      print(_friendshpstatus );
+
+
+
+      if (_friendshpstatus ){
+        var result = await showDialog<int>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('確認'),
+                content: Text('指定LINE BOTと友達になっていないのでアップロードできません'),
+                actions: <Widget>[
+
+                  TextButton(
+                    child: Text('OK'),
+                    onPressed: () => Navigator.of(context).pop(1),
+                  ),
+                ],
+              );
+            }
+        );
+        return;
+      }
+
+      Response response;
+
+
+      if (accessToken != null) {
+        //print(accessToken.toString());
+        //  Postdata のアップロード
+        response = await _dio.post(postService, data: new FormData.fromMap(
+            {'command': 'START', 'token': accessToken.value}));
+        //  Token を渡してログイン
+
+        if (response.statusCode == 200) {
+          print("response ok");
+          _msgTextC.text = "アップロード成功" ;
+          //  umsgbox = Text("response ok");
+          //  data upload 処理のステータスをとってエラーハンドリングを書かなければ
+          await _uploadPostData(context, bloc, _dio, postService, accessToken.value, _userProfile.displayName);
+
+          //  ログアウト処理
+          //response = await _dio.post(postService, data: new FormData.fromMap(
+          //  {'command': 'END', 'token': accessToken.value}));
+        }
+        else {
+          //   ログインエラー処理を書く
+          _msgTextC.text = "サーバ接続エラー "+ response.statusMessage;
+          //umsgbox = Text("サーバ接続エラー");
+          print("error ");
+        }
+      }
+    }
+    on PlatformException catch (e) {
+      _msgTextC.text = "サーバ接続エラー " + e.message ;
+      print(e.message);
+    }
+  }
+
+  _uploadPostData(BuildContext context, WsBloc bloc, Dio dio,
+      String postService, String accesstoken, String username) async {
+    bloc.getPost();
+
+    //  make transaction id
+    var transact_id = Uuid().v4();
+
+    var plist = await bloc.getPostd();
+
+    await for (Postd psd in plist) {
+      var mapd = psd.toMapJson();
+      //var mapd = "{\"id\"=1}";
+      // print(mapd);
+      var result = await fetchApiResults(mapd, dio, postService, accesstoken, username, transact_id );
+      //print(result);
+
+
+    }
+  }
+
+
+  Future<ApiResults> fetchApiResults(var post_data, Dio dio, String postService,
+      String accesstoken, String username , String transact_id ) async {
+
+
+    post_data['command'] = 'DATA';
+    post_data['token'] = accesstoken;
+
+    post_data['user'] = username ;
+    post_data['transact_id'] = transact_id ;
+
+    print(post_data);
+    var response = await dio.post(postService, data: new FormData.fromMap(
+        post_data));
+    //  Token を渡してログイン
+
+    if (response.statusCode == 200) {
+      print("response ok");
+
+    }
+    else {
+      print( "response error");
+
+
+    }
+  }
+
+  _getItemListTile( Postd ws )  {
     GenThumbnailImage  _futureImage;
 
     //  kind   0 text   1 image 2 movie   3 voice 4 file
@@ -450,6 +561,18 @@ Future<String> _getVideothumnail( tgfile ) async {
 
 }
 
+
+class ApiResults {
+  final String message;
+  ApiResults({
+    this.message,
+  });
+  factory ApiResults.fromJson(Map<String, dynamic> json) {
+    return ApiResults(
+      message: json['message'],
+    );
+  }
+}
 
 
 class SubListItem extends StatelessWidget {
