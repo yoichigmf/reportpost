@@ -38,9 +38,14 @@ class PostListView extends StatelessWidget {
 
   //final Postd post;
   final Postd _newPost = Postd.newPost();
-  var _msgTextC = TextEditingController();
+  //var _msgTextC = TextEditingController();
   var _image;
   final picker = ImagePicker();
+
+
+
+  var _snacontext;
+
 
   // final WorkSpace _newWS = WorkSpace.newWorkSpace();
 
@@ -50,6 +55,13 @@ class PostListView extends StatelessWidget {
     this.title = wksp.title;
   }
 
+  _show_snackbar(textmsg){
+    ScaffoldMessenger.of(_snacontext).showSnackBar(
+        SnackBar(
+        content:  Text(textmsg),
+    duration: const Duration(seconds: 5),
+        ));
+  }
 
   @override
   Widget build(BuildContext context)  {
@@ -58,6 +70,9 @@ class PostListView extends StatelessWidget {
     final postList = _bloc.reportPostBloc();
 
     final titlestring = _bloc.title;
+
+    _snacontext =  context;
+
 
     var lcount = 0;
 
@@ -307,7 +322,8 @@ class PostListView extends StatelessWidget {
 
         if (response.statusCode == 200) {
           print("response ok");
-          _msgTextC.text = "アップロード成功" ;
+          //_msgTextC.text = "アップロード成功" ;
+          _show_snackbar("アップロード成功");
           //  umsgbox = Text("response ok");
           //  data upload 処理のステータスをとってエラーハンドリングを書かなければ
           await _uploadPostData(context, bloc, _dio, postService, accessToken.value, _userProfile.displayName);
@@ -318,14 +334,16 @@ class PostListView extends StatelessWidget {
         }
         else {
           //   ログインエラー処理を書く
-          _msgTextC.text = "サーバ接続エラー "+ response.statusMessage;
+          _show_snackbar("サーバ接続エラー "+ response.statusMessage);
+          //_msgTextC.text = "サーバ接続エラー "+ response.statusMessage;
           //umsgbox = Text("サーバ接続エラー");
           print("error ");
         }
       }
     }
     on PlatformException catch (e) {
-      _msgTextC.text = "サーバ接続エラー " + e.message ;
+      _show_snackbar("サーバ接続エラー "+ e.message);
+      //_msgTextC.text = "サーバ接続エラー " + e.message ;
       print(e.message);
     }
   }
