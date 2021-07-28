@@ -161,7 +161,7 @@ class WsListView extends StatelessWidget {
     var LineChannel  = prefs.getString('line_channel') ?? '1656109293';
 
 
-    var postURL = prefs.getString('post_url') ?? 'https://uploadrep.herokuapp.com/rep.php';
+    var postURL = prefs.getString('post_url') ?? 'https://disasterrepodev.herokuapp.com/rep.php';
 
 
 
