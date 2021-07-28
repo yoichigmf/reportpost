@@ -19,6 +19,13 @@ version: 1.0.0+1
 
 environment:
   sdk: ">=2.10.0 <3.0.0"
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "lib/assets/report80.png"
+
+  #   https://icons8.jp/
+
 
 dependencies:
   flutter:
@@ -51,6 +58,7 @@ dependencies:
   shared_preferences: ^0.4.1
   path: ^1.7.0
   video_thumbnail: ^0.3.3
+  flutter_launcher_icons: ^0.8.1
 
 dev_dependencies:
   flutter_test:

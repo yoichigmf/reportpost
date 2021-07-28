@@ -63,6 +63,27 @@ class PostListView extends StatelessWidget {
         ));
   }
 
+  void _showBottom(BuildContext context){
+    Scaffold.of(_snacontext)
+        .showBottomSheet<Null>((_snacontext) {
+      return new Container(
+        height: 200,
+        padding: new EdgeInsets.all(10.0),
+        child: new Column(
+          children: <Widget>[
+            new Text('複数行の内容を'),
+            new Text('記載することができるので'),
+            new Text('ヘルプなど'),
+            new Text('ユーザ補助としても'),
+            new Text('つかえます。'),
+            new RaisedButton(onPressed: () => Navigator.pop(context), child: new Text('Close'),)
+          ],
+        ),
+      );
+    }
+    );
+  }
+
   @override
   Widget build(BuildContext context)  {
     _bloc = Provider.of<WsBloc>(context, listen: false);
@@ -132,6 +153,38 @@ class PostListView extends StatelessWidget {
               _moveToAddVideoFromGalley(context, _bloc);
             }
 
+        ),
+      ),
+
+
+      Expanded(
+        flex: 1,
+        child:   IconButton(
+            icon: Icon(Icons.record_voice_over_sharp),
+            onPressed: () {
+              //_uploadWorkSpace(context, _bloc);
+              /*
+              Scaffold.of(_snacontext )
+                  .showBottomSheet<Null>((_snacontext ) {
+                return new Container(
+                  height: 200,
+                  padding: new EdgeInsets.all(10.0),
+                  child: new Column(
+                    children: <Widget>[
+                      new Text('複数行の内容を'),
+                      new Text('記載することができるので'),
+                      new Text('ヘルプなど'),
+                      new Text('ユーザ補助としても'),
+                      new Text('つかえます。'),
+                      new RaisedButton(onPressed: () => Navigator.pop(context), child: new Text('Close'),)
+                    ],
+                  ),
+                );
+              }
+              );
+
+               */
+            }
         ),
       ),
 
