@@ -399,6 +399,10 @@ class PostListView extends StatelessWidget {
       //_msgTextC.text = "サーバ接続エラー " + e.message ;
       print(e.message);
     }
+    catch( e ) {
+      _show_snackbar("サーバ接続エラー "+ e.message);
+      print(e.message);
+    }
   }
 
   _uploadPostData(BuildContext context, WsBloc bloc, Dio dio,
