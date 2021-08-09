@@ -59,7 +59,14 @@ class PostListView extends StatelessWidget {
     ScaffoldMessenger.of(_snacontext).showSnackBar(
         SnackBar(
         content:  Text(textmsg),
-    duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'とじる',
+            onPressed: () {
+              ScaffoldMessenger.of(_snacontext).hideCurrentSnackBar();
+            },
+          ),
+
+    duration: const Duration(seconds: 10),
         ));
   }
 
@@ -372,7 +379,7 @@ class PostListView extends StatelessWidget {
         response = await _dio.post(postService, data: new FormData.fromMap(
             {'command': 'START', 'token': accessToken.value}));
         //  Token を渡してログイン
-
+        //print("response status  ");s
         if (response.statusCode == 200) {
           print("response ok");
           //_msgTextC.text = "アップロード成功" ;
@@ -384,6 +391,14 @@ class PostListView extends StatelessWidget {
           //  ログアウト処理
           //response = await _dio.post(postService, data: new FormData.fromMap(
           //  {'command': 'END', 'token': accessToken.value}));
+        }
+        else if (response.statusCode == 404){
+          //   URL not found
+          _show_snackbar("サーバが見つかりません "+ response.statusMessage);
+          //_msgTextC.text = "サーバ接続エラー "+ response.statusMessage;
+          //umsgbox = Text("サーバ接続エラー");
+          print("error ");
+
         }
         else {
           //   ログインエラー処理を書く
