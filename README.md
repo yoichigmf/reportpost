@@ -1,16 +1,11 @@
 # reportpost
 
-An application that collectively posts texts and images collected offline to a server when online
+An application that collectively posts texts and images collected offline to a server when onlin
 
-## Getting Started
+## line login利用版
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+line のログインプロバイダの id を指定
+ログインプロバイダにリンクしているline公式アカウント(bot)のメンバでないと利用が認可されない
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+アップロードサービスのURL指定
